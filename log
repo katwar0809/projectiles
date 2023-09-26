@@ -1,0 +1,30 @@
+05/08/23 : started annotating tutorial code + experimenting
+18/08/23 : created particle and line
+21/08/23 : turned line into arrow and cleaned up code
+23/08/23 : created path method and main running code (all i have left is findAngle method)
+05/09/23 : created findAngle method (took a long time) and fixed other issues due to order of some lines (some code can't work in running loop and needs to b outside)
+
+
+Steps for next time:
+- add boundaries
+- check angles for angle finding in diff quadrants
+- add bouncing? restitution equations maybe?
+
+notes:
+- don't define variables for suvat in the buttondown check do it in 'if projected' loop instead so its all together XX CAN"T DO THIS BC IT UPDATES
+- most confusing thing ever is that the y coordinates start at 0 from the top, ie, top left is 0,0
+
+Things to do:
+- analysis
+- add targets
+- more oop
+- add bouncing
+- move targets
+- add timer
+- add air resistance
+- clean up code
+- nicer gui
+
+useful things I've found:
+- math.atan2(y,x) gives the arctan of y/x but it considers the signs of y and x which is useful for direction :)
+- making constants for colours actually saves so much time in the long run
