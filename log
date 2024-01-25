@@ -16,15 +16,26 @@ notes:
 
 Things to do:
 - analysis
-- add targets
-- more oop
-- add bouncing
 - move targets
 - add timer
-- add air resistance
+- add air resistance?
 - clean up code
 - nicer gui
+- options for different environments --> dropdown menu
 
 useful things I've found:
 - math.atan2(y,x) gives the arctan of y/x but it considers the signs of y and x which is useful for direction :)
 - making constants for colours actually saves so much time in the long run
+
+
+
+
+***scrap obstacles and add sliders instead***
+
+
+
+
+
+
+
+find out how many bounces needed for it to stop
