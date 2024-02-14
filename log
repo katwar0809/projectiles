@@ -22,6 +22,7 @@ Things to do:
 - clean up code
 - nicer gui
 - options for different environments --> dropdown menu
+- SCREENSAVER?
 
 useful things I've found:
 - math.atan2(y,x) gives the arctan of y/x but it considers the signs of y and x which is useful for direction :)
