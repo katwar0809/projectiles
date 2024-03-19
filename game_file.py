@@ -5,24 +5,78 @@ import pygame
 import sys
 import math
 pygame.init()
+pygame.display.set_caption('Projectile Simulation')
 
 
+class Game(object):
+    """
+    A class to represent the whole Game
 
-class Game():
+    ...
+
+    Attributes
+    ----------
+    running : Bool
+        a boolean value for whether the simulation is running or not
+    particle : Particle
+        the particle that will be projected
+    launch_angle : float
+        the initial launch angle of the particle
+    time : float
+        the current time elapsed in the projection
+    max_bounces : int
+        the number of times the particle will bounce before its velocity approximates zero
+    bounces : int
+        the current number of times the particle has bounced vertically
+    displayed_bounces : int
+        the particle's total number of bounces
+    launches : int
+        the number of times the particle has been launched
+    score : int
+        the current score based on how many points have been collected
+    points : list
+        a list of Point instances to represent the total collectable points on the window
+    obstacles : list
+        a list of Obstacle instances to represent the obstacles on the window
+    trail_shown : Bool
+        a boolean value for whether the particle trail is shown in the simulation
+    velocity_shown : Bool
+        a boolean value for whether the particle's velocity arrows are shown in the simulation
+    obstacles_shown : Bool
+        a boolean value for whether there are obstacles in the simulation
+    reset_button : MainButton
+        an instance of the MainButton class to represent a button that resets the simulation
+
+
+    Methods
+    -------
+    initialise():
+        sets up the initial menu window where the user can input initial projection values
+    redrawWindow():
+        creates and displays the current projection frame on the window
+    findLaunchAngle(start_x, start_y, mouse_pos):
+        static method that finds the particle's initial launch angle
+    run():
+        runs the projection
+    """
+
     def __init__(self):
+        """
+        Initialises all the attributes of the Game class
+        """
 
-        self.points = None
+        self.running = None
         self.particle = game_objects.Particle(user_inputs.wScreen / 2, user_inputs.hScreen / 2, 10)
 
-        self.clock = pygame.time.Clock()
         self.launch_angle = 0
         self.time = 0
+        self.max_bounces = None
         self.bounces = 0
-        self.displaybounces = 0
-        self.score = 0
+        self.displayed_bounces = 0
         self.launches = None
-        self.obstacles = None
-
+        self.score = 0
+        self.points = []
+        self.obstacles = []
 
         self.trail_shown = False
         self.velocity_shown = False
@@ -31,10 +85,14 @@ class Game():
         self.reset_button = user_inputs.MainButton(1300, 30, user_inputs.BLACK, 'RESET')
 
     def initialise(self):
+        """
+        Sets up the initial menu window where the user can input initial projection values
+        """
+
         self.launches = 10
         self.particle.x, self.particle.y = user_inputs.wScreen / 2 , user_inputs.hScreen / 2
         self.points = [game_objects.Point() for i in range(10)]
-        self.obstacles = [game_objects.Obstacle(), game_objects.Obstacle(), game_objects.MovingObstacle()]
+        self.obstacles = [game_objects.Obstacle(self.particle.radius), game_objects.Obstacle(self.particle.radius), game_objects.MovingObstacle(self.particle.radius)]
 
         run_button = user_inputs.MainButton(600, 200, user_inputs.BLACK, 'Play!')
         trail_button = user_inputs.Button(200, 100, None, 'Show Ball Trail')
@@ -43,9 +101,9 @@ class Game():
 
         input_buttons = [run_button, trail_button,velocity_button,obstacle_button]
 
-        restitution_slider = user_inputs.Slider(0, 0.9, 1000, 100, 'Restitution')
+        restitution_slider = user_inputs.Slider(0.0, 0.9, 1000, 100, 'Restitution')
         size_slider = user_inputs.Slider(10, 50, 1000, 200, 'Ball Size')
-        grav_slider = user_inputs.Slider(0, 50, 1000, 300, 'Gravity')
+        grav_slider = user_inputs.Slider(0.0, 30, 1000, 300, 'Gravity')
 
         input_sliders = [restitution_slider, size_slider, grav_slider]
 
@@ -56,9 +114,12 @@ class Game():
             for slider in input_sliders:
                 slider.draw()
             for event in pygame.event.get():
-                if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
                     for button in input_buttons:
-                        button.is_pressed(event.pos)
+                        button.isPressed(event.pos)
                 elif event.type == pygame.MOUSEMOTION:
                     for slider in input_sliders:
                         slider.isUsed(event.buttons[0], event.pos)
@@ -69,23 +130,23 @@ class Game():
         self.velocity_shown = velocity_button.pressed
         self.obstacles_shown = obstacle_button.pressed
 
-        self.particle.radius = size_slider.sliderval
-        self.particle.coeff_rest = restitution_slider.sliderval
-        self.particle.acc = -grav_slider.sliderval
+        self.particle.radius = size_slider.slider_val
+        self.particle.coeff_rest = restitution_slider.slider_val
+        self.particle.acc = -grav_slider.slider_val
 
         self.run()
 
-
     def redrawWindow(self):
+        """
+        Creates and displays the current projection frame on the window
+        """
 
         user_inputs.window.fill(user_inputs.SKYBLUE)
 
         self.reset_button.draw()
 
-
         if self.launches < 0:
             self.initialise()
-
 
         self.particle.create()
         self.particle.launch_arrow.start, self.particle.launch_arrow.end = (self.particle.x, self.particle.y), pygame.mouse.get_pos()
@@ -116,7 +177,7 @@ class Game():
         score_surface = user_inputs.font.render(f'Score = {self.score}', False, user_inputs.WHITE)
         velocity_surface = user_inputs.font.render(f'Current Velocity = {self.particle.vel:.3f}', False, user_inputs.WHITE)
         angle_surface = user_inputs.font.render(f'Launch Angle = {self.launch_angle:.2f}', False, user_inputs.WHITE)
-        bounce_surface = user_inputs.font.render(f'Num of Bounces = {self.displaybounces}', False, user_inputs.WHITE)
+        bounce_surface = user_inputs.font.render(f'Num of Bounces = {self.displayed_bounces}', False, user_inputs.WHITE)
         launch_surface = user_inputs.font.render(f'Launches remaining = {self.launches}', False, user_inputs.WHITE)
 
         user_inputs.window.blit(velocity_surface, (100, 100))
@@ -127,7 +188,24 @@ class Game():
 
         pygame.display.update()
 
-    def findLaunchAngle(self, start_x, start_y, mouse_pos):
+    @staticmethod
+    def findLaunchAngle(start_x, start_y, mouse_pos):
+        """
+        Static method that finds the particle's initial launch angle
+
+        Parameters
+        ----------
+        start_x : int
+            the particle's initial x coordinate
+        start_y : int
+            the particle's initial y coordinate
+        mouse_pos : tuple
+            the current coordinates of the cursor
+
+        Returns
+        -------
+        An integer value representing the launch angle
+        """
 
         mouse_x = mouse_pos[0]
         mouse_y = mouse_pos[1]
@@ -166,13 +244,16 @@ class Game():
         return abs(angle * (180 / math.pi))
 
     def run(self):
+        """
+        Runs the projection
+        """
+
         running = True
-        x,y = self.particle.x,self.particle.y
+        x, y = self.particle.x,self.particle.y
+
         while running:
-            self.clock.tick(400)
 
-
-            self.launch_angle = self.findLaunchAngle(self.particle.x, self.particle.y, pygame.mouse.get_pos()) if not self.particle.projected else self.launch_angle
+            self.launch_angle = self.findLaunchAngle(x, y, pygame.mouse.get_pos()) if not self.particle.projected else self.launch_angle
 
             if self.particle.projected:
 
@@ -186,34 +267,32 @@ class Game():
 
                     if self.obstacles_shown:
                         for obstacle in self.obstacles:
-                            if obstacle.checkCollision((self.particle.x, self.particle.y), self.particle.radius) == True:
-                                x,y = self.particle.bounce(obstacle.collisiontype)
+                            if obstacle.checkCollision((self.particle.x, self.particle.y), self.particle.radius):
+                                x, y = self.particle.bounce('horizontal')
 
                                 self.time = 0
-                                self.displaybounces += 1
+                                self.displayed_bounces += 1
 
-                    if self.particle.x <= self.particle.radius or self.particle.x >= user_inputs.wScreen - self.particle.radius: #left wall
+                    if self.particle.x <= self.particle.radius or self.particle.x >= user_inputs.wScreen - self.particle.radius:
 
-                        x,y = self.particle.bounce('horizontal')
+                        x, y = self.particle.bounce('horizontal')
 
                         self.time = 0
-                        self.displaybounces += 1
+                        self.displayed_bounces += 1
 
                     if self.particle.y <= self.particle.radius or self.particle.y >= user_inputs.hScreen - self.particle.radius:
                         x, y = self.particle.bounce('vertical')
                         self.time = 0
-                        self.displaybounces += 1
+                        self.displayed_bounces += 1
                         self.bounces += 1
 
-                    self.particle.path(x, y, self.time)
-                    self.particle.trail.update((self.particle.x, self.particle.y))
+                    self.particle.findPath(x, y, self.time)
 
                 else:
                     self.particle.projected = False
                     self.particle.vel = 0.0
                     self.particle.y = y + self.particle.radius - 1
                     self.particle.x = x
-
 
             self.redrawWindow()
 
@@ -225,7 +304,7 @@ class Game():
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
 
-                    if self.reset_button.is_pressed(event.pos):
+                    if self.reset_button.isPressed(event.pos):
                         self.running = False
 
                         self.initialise()
@@ -233,20 +312,25 @@ class Game():
                     else:
 
                         if not self.particle.projected:
-                            x, y = self.particle.x, self.particle.y
                             self.particle.findInitVel()
                             self.bounces = 0
-                            self.displaybounces = 0
+                            self.displayed_bounces = 0
                             self.max_bounces = self.particle.findBounces()
                             self.launches -= 1
                             self.particle.projected = True
-                            # checks that particle isn't already being projected. if not, then particle is projected.
 
 
+def startGame():
+    """
+    Creates and initialises an instance of the Game class
+    """
 
-if __name__ == "__main__":
-    game = Game()
-    game.initialise()
+    if __name__ == "__main__":
+        game = Game()
+        game.initialise()
+
+
+startGame()
 
 
 '''
@@ -257,4 +341,6 @@ problems:
 - bouncing on top of obstacles doesn't work
 - doesn't close when on main menu
 
+thoughts:
+- in eval: should make game optional cos distracting
 '''
